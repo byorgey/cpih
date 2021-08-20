@@ -1,0 +1,22 @@
+resolver: lts-13.27
+packages: []
+
+extra-deps:
+- diagrams-lib-1.4.3
+- diagrams-pgf-1.4.1
+- diagrams-rasterific-1.4.1.1
+- texrunner-0.0.1.2
+- diagrams-builder-0.8.0.4
+- haskell-src-exts-simple-1.20.0.0
+- BlogLiterately-0.8.6.3
+- BlogLiterately-diagrams-0.2.1
+- HaXml-1.25.5
+- bool-extras-0.4.0
+- haxr-3000.11.3
+- JuicyPixels-3.3.4
+- palette-0.3.0.2
+
+flags:
+  diagrams-builder:
+    pgf: true
+    rasterific: true
