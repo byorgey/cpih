@@ -4,6 +4,7 @@
 *.pdf
 *.tex
 *.lock
+*.toc
 
 .shake/
 .stack-work/
