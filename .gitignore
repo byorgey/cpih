@@ -1,4 +1,5 @@
 *~
+*.ptb
 *.aux
 *.log
 *.pdf
