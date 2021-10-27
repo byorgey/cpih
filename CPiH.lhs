@@ -74,29 +74,24 @@
 \chapter{Getting Started}
 \label{chap:getting-started}
 
-As a running example, we will consider the problem
-\inlinekattis{twosum} by Johann Sannemo, reprinted here for
-convenience:
-
-\begin{quote}
-Per-Magnus is trying to add two integers, but he never learned how to.
-
-Write a program to help him with this most difficult task!
-
-\textbf{Input} \\
-The input consists of a single line with two integers $0 \leq a \leq
-1000$ and $0 \leq b \leq 1000$.
-
-\textbf{Output} \\
-Output a single integer, the sum $a+b$.
-
-Sample Input 1	Sample Output 1
-1 1
+As a basic running example, we will consider the same example problem
+that Open Kattis uses in its \href{https://open.kattis.com/help}{help
+  section}, namely, A Different Problem (\inlinekattis{different}).
+In this problem, we are told that the input will consist of a number
+of pairs of integers between $0$ and $10^{15}$, one pair per line, and
+we should output the absolute value of the difference between each
+pair. The given example is that if the input looks like this:
+\begin{verbatim}
+10 12
+71293781758123 72784
+1 12345677654321
+\end{verbatim}
+then our program should produce output that looks like this:
+\begin{verbatim}
 2
-Sample Input 2	Sample Output 2
-2 2
-4
-\end{quote}
+71293781685339
+12345677654320
+\end{verbatim}
 
 This is of course an extremely simple problem, so we can just focus on
 the mechanics of solving a problem in Haskell.
@@ -107,17 +102,22 @@ You can see that this problem specifies an \emph{input} in a
 particular format (which will be provided on the standard input of our
 program), and requires us to produce a specified \emph{output} (via
 standard output).  Most competitive programming problems are of this
-form.\footnote{There certainly do exist problems requiring interaction beyond
-standard input and output, such as reading from a certain file, doing
-network I/O, and so on, but we will not consider such problems in this
-book!} An imperative approach to such a problem involves doing a
-sequence of input commands, some computation, and a sequence of output
-commands, possibly all interleaved with one another. However, the
-functional perspective is much nicer: we are simply being asked to
-implement a particular (partial) function of type |String -> String|!
-The fact that the function's input and output should be on the
-program's standard input and output is just an implementation detail.
-Competitive programming is functional at heart.
+form.\footnote{There certainly do exist problems requiring interaction
+  beyond standard input and output, such as reading from a certain
+  file, doing network I/O, and so on, but we will not consider such
+  problems in this book!} An imperative approach to such a problem
+involves doing a sequence of input commands, some computation, and a
+sequence of output commands, possibly all interleaved with one
+another, and we might immediately think to start using functions like
+|getLine| and |putStrLn| to do the required I/O.  However, there is a
+much more fruitful functional perspective: we are simply being asked
+to implement a particular (partial) function of type |String ->
+String|!\footnote{If you are worried about the use of |String|, fear
+  not: in Chapter XXX, once we develop a simple parsing framework, we
+  will switch to |ByteString| for efficiency.}  The fact that the
+function's input and output should be on the program's standard input
+and output is just an implementation detail.  Competitive programming
+is functional at heart.
 
 It turns out that Haskell already has the perfect built-in function
 for this scenario:
@@ -132,8 +132,8 @@ in some scenarios, but is perfect for this situation: the input is
 read lazily, as demanded by the function, so that the output and input
 can be automatically interleaved depending on which parts of the
 output depend on which parts of the input. In particular, this means
-that (unless required by the logic of the problem) we need not read
-the entire input into memory at once.
+that (unless required by the logic of the problem) we need not worry
+about storing the entire input in memory at once.
 
 Thus, the |interact| function lets us immediately pass to a functional
 view of a problem, worrying only about the essential details of
@@ -142,43 +142,112 @@ last time |IO| will appear in this book!
 
 \subsection*{A basic solution pipeline}
 
-With this in mind, we can write the basic skeleton of a solution.
-Typically, we will compose the solution out of three phases:
-\begin{itemize}
-\item First, a function to |parse| the initial |String| into a more structured
-  representation of the input.  In this case, we can simply use the
-  standard |unwords| function to break up the input into individual
-  tokens, and |read| to convert strings into integers.
-\item Next, a function to |solve| the problem, producing a structured
-  representation of the requested output.  In this case, we can just
-  |sum| the input values.
-\item Finally, a function to |format| the output to a |String|; in
-  this case, |show| will suffice.
-\end{itemize}
+So now we need to write a pure function which transforms the input
+into the output.  Of course, in true Haskell fashion, we will do this
+by constructing a chained pipeline of functions to do the job
+incrementally.  The general plan of attack (for any problem) is
+as follows:
 
-So, a complete solution to our example problem might look something
-like this:
-\begin{code} % XXX put in a float etc.
+\begin{enumerate}
+\item First, parse the input, that is, transform the raw input
+  into some more semantically meaningful representation.
+\item Next, solve the problem, turning a semantically meaningful
+   representation of the input into a semantically meaningful
+   representation of the output.
+\item Finally, format the output into a |String| for output.
+\end{enumerate}
+
+Figure~\ref{fig:skeleton-different} has a simple skeleton solution along
+these lines.
+
+\begin{figure}
+  \centering
+\begin{code}
   import Control.Arrow ((>>>))
 
-  main = interact $ parse >>> solve >>> format
+  main = interact $ parse >>> map solve >>> format
 
-  parse :: String -> [Int]
-  parse = unwords >>> map read
+  parse :: String -> [[Integer]]
+  parse = _
 
-  solve :: [Int] -> Int
-  solve = sum
+  solve :: [Integer] -> Integer
+  solve = _
 
-  format :: Int -> String
-  format = show
+  format :: [Integer] -> String
+  format = _
 \end{code}
+% $
+  \caption{A skeleton solution for A Different Problem}
+  \label{fig:skeleton-different}
+\end{figure}
 
-Notice the use of the backwards function composition operator |(>>>)|
-from |Control.Arrow|.  When solving programming problems, I like to be
-able to type function pipelines from left to right as I think about
-data flowing through the pipeline from beginning to end.  This is of
-course a personal preference, and one could also write |format . solve
-. parse| instead of |parse >>> solve >>> format|.
+There are a few things to point out.
+
+\begin{enumerate}
+\item Notice the use of the backwards function composition operator
+  |(>>>)| from |Control.Arrow| (essentially, we have |f >>> g = g
+  . f|, although |(>>>)| is actually a bit more general).  When
+  solving programming problems, I like to be able to type function
+  pipelines from left to right as I think about data flowing through
+  the pipeline from beginning to end.  This is of course a personal
+  preference, and one could also write |format . solve . parse|
+  instead of |parse >>> solve >>> format|.
+\item If the machine on which our solution will run has a 64-bit
+  architecture (this is always true for Open Kattis, but not
+  necessarily so for other platforms such as Codeforces), we could
+  technically get away with using |Int| instead of |Integer|:
+  |maxBound :: Int64| is a bit more than $9 \times 10^{18}$, plenty
+  big enough for inputs up to $10^{15}$. For more complex problems
+  using |Int| instead of |Integer| can be an important optimization;
+  however, for simple problems, using |Integer| is preferred since it
+  eliminates the potential for bugs due to overflow.
+\end{enumerate}
+
+XXX
+In simple cases, the `solve` function in this case, but I
+  prefer to split it out explicitly in order to specify its type,
+  which both prevents problems with `read`/`show` ambiguity and also
+  serves as a sanity check on the parsing and formatting code.
+
+
+
+And one last thing: I said we were going to parse the input into a
+"semantically meaningful representation", but I lied a teensy bit: the
+problem says we are going to get a *pair* of integers but I wrote my
+`solve` function as though it takes a *list* of integers.  And even
+worse, my `solve` function is partial!  Why did I do that?
+
+The fact is that I almost never use actual Haskell tuples in my
+solutions, because they are too awkward and inconvenient. Representing
+homogeneous tuples as Haskell lists of a certain known length allows
+us to read and process "tuples" using standard functions like `words`
+and `map`, to combine them using `zipWith`, and so on.  And since we
+get to assume that the input always precisely follows the
+specification---which will never change---this is one of the few
+situations where, in my opinion, we are fully justified in writing
+partial functions like this if it makes the code easier to write.  So
+I always represent homogeneous tuples as lists and just pattern match
+on lists of the appropriate (known) length.  (If I need heterogeneous
+tuples, on the other hand, I create an appropriate `data` type.)
+
+Of course I've only scratched the surface here---I'll have a lot more
+to say in future posts---but this should be enough to get you started!
+I'll leave you with a few very easy problems, which can each be done
+with just a few lines of Haskell:
+
+* [Job Expenses](https://open.kattis.com/problems/jobexpenses)
+* [Judging Moose](http://open.kattis.com/problems/judgingmoose)
+* [Quick Estimate](http://open.kattis.com/problems/quickestimate)
+
+Of course you can also try solving any of the other problems (as of
+this writing, over 2400 of them!) on Kattis as well.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 
 \subsection*{Parsing and formatting}
 
@@ -189,6 +258,8 @@ You might wonder about using a list as the output of |parse| and the
 input of |solve|.  Shouldn't we use something like |(Int,Int)| since
 we know we will be given exactly two integers? XXX paste in blog post
 about this
+
+
 
 \chapter{Wholemeal Programming}
 \label{chap:wholemeal}
