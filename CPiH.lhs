@@ -132,8 +132,10 @@ in some scenarios, but is perfect for this situation: the input is
 read lazily, as demanded by the function, so that the output and input
 can be automatically interleaved depending on which parts of the
 output depend on which parts of the input. In particular, this means
-that we need not worry about storing the entire input in memory at
-once.
+that that the entire input need not be stored in memory at once; if
+the inputs can be processed into outputs in a streaming fashion---as
+is the case in the example problem we are currently
+considering!---then the input and output will be interleaved.
 
 Thus, the |interact| function lets us immediately pass to a functional
 view of a problem, worrying only about the essential details of
@@ -229,10 +231,9 @@ There are a few things to point out.
 \subsection*{Using partial functions}
 
 You might wonder about using a list as the output of |parse| and the
-input of |solve|.  Shouldn't we use something like |(Int,Int)| since
+input of |solve|.  Shouldn't we use something like |(Int,Int)|, since
 we know we will be given exactly two integers? XXX paste in blog post
 about this
-
 
   The fact is that I almost never use actual Haskell tuples in my
   solutions, because they are too awkward and
@@ -243,19 +244,23 @@ about this
   always precisely follows the specification---which will never
   change---this is one of the few situations where, in my opinion, we
   are fully justified in writing partial functions like this if it
-  makes the code easier to write.  So I always represent homogeneous
+  makes the code easier to write.  So I often represent homogeneous
   tuples as lists and just pattern match on lists of the appropriate
   (known) length.  (If I need heterogeneous tuples, on the other hand,
   I create an appropriate |data| type.)
 
-XXX practice problems
+\subsection*{Practice problems}
 
-* [Job Expenses](https://open.kattis.com/problems/jobexpenses)
-* [Judging Moose](http://open.kattis.com/problems/judgingmoose)
-* [Quick Estimate](http://open.kattis.com/problems/quickestimate)
+Here are a few simple problems for you to practice on.
 
-Of course you can also try solving any of the other problems (as of
-this writing, over 2400 of them!) on Kattis as well.
+\kattis{jobexpenses, judgingmoose, quickestimate}
+
+However, there are many, many problems on Open Kattis that can be
+solved with not much more than the techniques explained in this
+chapter; I encourage you to just try solving a bunch!  To start, look
+for problems with a difficulty rating less than 2.0.  To find such
+problems easily, you can go to the list of all problems and sort by
+difficulty.
 
 \chapter{Wholemeal Programming}
 \label{chap:wholemeal}
