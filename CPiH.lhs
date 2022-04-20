@@ -125,14 +125,14 @@ built-in function for this scenario:
 interact :: (String -> String) -> IO ()
 \end{code}
 |interact| takes a pure |String -> String| function and turns it into
-an |IO ()| action which reads from standard input, passes the input to
+an |IO| action which reads from standard input, passes the input to
 the given function, and prints the result to standard output.  It even
 does this using \emph{lazy} I/O, which can be strange and problematic
 in some scenarios, but is perfect for this situation: the input is
 read lazily, as demanded by the function, so that the output and input
 can be automatically interleaved depending on which parts of the
 output depend on which parts of the input. In particular, this means
-that that the entire input need not be stored in memory at once; if
+that that the entire input need not be stored in memory at once. If
 the inputs can be processed into outputs in a streaming fashion---as
 is the case in the example problem we are currently
 considering!---then the input and output will be interleaved.
@@ -158,7 +158,7 @@ as follows:
 \item Finally, format the output into a |String|.
 \end{enumerate}
 Figure~\ref{fig:skeleton-different} has a simple skeleton solution along
-these lines.
+these lines. There are a few things to point out.
 
 \begin{figure}
   \centering
@@ -181,9 +181,7 @@ these lines.
   \label{fig:skeleton-different}
 \end{figure}
 
-There are a few things to point out.
-
-\begin{enumerate}
+\begin{itemize}
 \item Notice the use of the backwards function composition operator
   |(>>>)| from |Control.Arrow| (essentially, |f >>> g = g . f|,
   although in actuality |(>>>)| is a bit more general than that).
@@ -196,33 +194,31 @@ There are a few things to point out.
   architecture (this is always true for Open Kattis, but not
   necessarily so for other platforms such as Codeforces), for this
   problem we could technically get away with using |Int| instead of
-  |Integer|. On a 64-bit architecture, |maxBound :: Int| is
-  $2^{63} - 1$, which is a bit more than $9 \times 10^{18}$, plenty
-  big enough for inputs up to $10^{15}$. For more computationally
-  intensive problems, using |Int| instead of |Integer| can be an
-  important optimization; however, for simple problems, using
-  |Integer| is preferred since it eliminates the potential for bugs
-  due to overflow.
+  |Integer|. On a 64-bit architecture, |maxBound :: Int| is $2^{63} -
+  1$, which is a bit more than $9 \times
+  10^{18}$, plenty big enough for this problem, with inputs only up to
+  $10^{15}$. For more computationally intensive problems, using |Int|
+  instead of |Integer| can be an important optimization; however, for
+  simple problems, using |Integer| is preferred since it eliminates
+  the potential for bugs due to overflow.
 
 \item In simple problems such as this, the |solve| function could
-  probably be inlined (it's a fun challenge to solve easy problems in
-  a single line of code!).  However, I prefer to split it out
-  explicitly in order to specify its type, which both prevents
-  problems with |read|/|show| ambiguity, and also serves as a sanity
-  check on the parsing and formatting code.
+  probably be inlined (it can be a fun challenge to solve easy
+  problems in a single line of code!).  However, in general, I prefer
+  to split it out explicitly in order to specify its type, which both
+  prevents problems with |read|/|show| ambiguity, and also serves as a
+  sanity check on the parsing and formatting code.
 
 \item And one last thing: I said we were going to parse the input into
   a ``semantically meaningful representation'', but I lied a teensy
   bit: the problem says we are going to get a \emph{pair} of integers,
   but the type of |solve| says that it takes a \emph{list} of
   integers.  This is a bigger discussion XXX see later.
-\end{enumerate}
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 
 \subsection*{Parsing and formatting}
@@ -255,12 +251,12 @@ Here are a few simple problems for you to practice on.
 
 \kattis{jobexpenses, judgingmoose, quickestimate}
 
-However, there are many, many problems on Open Kattis that can be
-solved with not much more than the techniques explained in this
-chapter; I encourage you to just try solving a bunch!  To start, look
-for problems with a difficulty rating less than 2.0.  To find such
-problems easily, you can go to the list of all problems and sort by
-difficulty.
+This is just a very small sample; there are many, many problems on
+Open Kattis that can be solved with not much more than the techniques
+explained in this chapter, and I encourage you to just solve a bunch
+of them!  To start, look for problems with a difficulty rating less
+than 2.0.  To find such problems easily, you can go to the list of all
+problems (\url{http://open.kattis.com/problems/}) and sort by difficulty.
 
 \chapter{Wholemeal Programming}
 \label{chap:wholemeal}
