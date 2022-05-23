@@ -38,6 +38,20 @@
 %% prettyref
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\newrefformat{fig}{Figure~\ref{#1}}
+\newrefformat{sec}{section~\ref{#1}}
+\newrefformat{chap}{Chapter~\ref{#1}}
+\newrefformat{eq}{equation~\eqref{#1}}
+\newrefformat{prob}{Problem~\ref{#1}}
+\newrefformat{tab}{Table~\ref{#1}}
+\newrefformat{thm}{Theorem~\ref{#1}}
+\newrefformat{lem}{Lemma~\ref{#1}}
+\newrefformat{prop}{Proposition~\ref{#1}}
+\newrefformat{defn}{Definition~\ref{#1}}
+\newrefformat{cor}{Corollary~\ref{#1}}
+\newrefformat{ex}{Exercise~\ref{#1}}
+\newrefformat{alg}{Algorithm~\ref{#1}}
+
 \newcommand{\pref}[1]{\prettyref{#1}}
 
 % \Pref is just like \pref but it uppercases the first letter; for use
@@ -48,6 +62,13 @@
     \edef\reftext{\prettyref{#1}}\expandafter\MakeUppercase\reftext
     \fi
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Misc semantic markup
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\module}[1]{\emph{#1}}
+\newcommand{\pkg}[1]{\texttt{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Kattis
