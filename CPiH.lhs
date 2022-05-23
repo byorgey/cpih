@@ -113,7 +113,8 @@ then our program should produce output that looks like this:
 This is of course an extremely simple problem, so we can just focus on
 the mechanics of solving a problem in Haskell.
 
-\subsection*{Competitive programming is functional}
+\section{Competitive programming is functional}
+\label{sec:cp-functional}
 
 You can see that this problem specifies an \emph{input} in a
 particular format (which will be provided via our program's standard
@@ -159,7 +160,8 @@ view of a problem, worrying only about the essential details of
 transforming the given input into the requested output.  This is the
 last time |IO| will appear in this book!
 
-\subsection*{A basic solution pipeline}
+\section{A basic solution pipeline}
+\label{sec:pipeline}
 
 So now we need to write a pure function which transforms the input
 into the output.  Of course, in true Haskell fashion, we will do this
@@ -230,24 +232,47 @@ these lines. There are a few things to point out.
   a ``semantically meaningful representation'', but I lied a teensy
   bit: the problem says we are going to get a \emph{pair} of integers,
   but the type of |solve| says that it takes a \emph{list} of
-  integers.  This is a bigger discussion XXX see later.
+  integers.  We will discuss and justify this choice in more detail in
+  \pref{sec:partial}.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Parsing and formatting}
+\label{sec:parse-format}
 
-\subsection*{Parsing and formatting}
+The outer shell of our basic solution pipeline deals with converting
+between the raw strings used as input and output, and more
+semantically meaningful representations.  In many cases, it suffices
+to use basic Prelude list-processing functions.
+
+\begin{itemize}
+\item For parsing input, some of the most frequently useful functions
+  include |lines|, |words|, |drop|, and |read|.  The |split| function
+  from the \texttt{Data.List.Split} module (from the \texttt{split}
+  package) can also be helpful.
+\item For formatting output, some of the most frequently useful
+  functions include |unlines|, |unwords|, |show|, |concat|,
+  |intersperse|, and |intercalate|.
+\end{itemize}
+
+In \pref{chap:parsing} we will consider more sophisticated tools for
+parsing in particular, but until then we will stick to problems that
+only require these basic tools.  Fortunately there are many such
+problems.
 
 
 
-\subsection*{Using partial functions}
+\section{Using partial functions}
+\label{sec:partial}
 
 You might wonder about using a list as the output of |parse| and the
 input of |solve|.  Shouldn't we use something like |(Int,Int)|, since
 we know we will be given exactly two integers? XXX paste in blog post
-about this
+about this.  Note you can skip if you're not interested in the
+philosophy
 
   The fact is that I almost never use actual Haskell tuples in my
   solutions, because they are too awkward and
@@ -263,7 +288,11 @@ about this
   (known) length.  (If I need heterogeneous tuples, on the other hand,
   I create an appropriate |data| type.)
 
-\subsection*{Practice problems}
+\section{Explicit recursion}
+\label{sec:explicit-recursion}
+
+\section{Practice problems}
+\label{sec:gs-practice}
 
 Here are a few simple problems for you to practice on.
 
