@@ -32,6 +32,23 @@
 \usepackage{etoolbox}
 \usepackage{mdframed}
 
+\usepackage{prettyref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% prettyref
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\pref}[1]{\prettyref{#1}}
+
+% \Pref is just like \pref but it uppercases the first letter; for use
+% at the beginning of a sentence.
+\newcommand{\Pref}[1]{%
+  \expandafter\ifx\csname r@@#1\endcsname\relax {\scriptsize[ref]}
+    \else
+    \edef\reftext{\prettyref{#1}}\expandafter\MakeUppercase\reftext
+    \fi
+}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Kattis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
