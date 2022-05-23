@@ -224,6 +224,7 @@ these lines. There are a few things to point out.
 \subsection*{Parsing and formatting}
 
 
+
 \subsection*{Using partial functions}
 
 You might wonder about using a list as the output of |parse| and the
@@ -264,11 +265,14 @@ problems (\url{http://open.kattis.com/problems/}) and sort by difficulty.
 XXX already touched on this a bit in previous section re: interact,
 lazy IO, etc.
 
+\chapter{Monoids}
+\label{chap:monoids}
+
 \chapter{Trees}
 \label{chap:trees}
 
-\chapter{Monoids}
-\label{chap:monoids}
+\chapter{Parsing}
+\label{chap:parsing}
 
 \chapter{Data Structures}
 \label{chap:data-structures}
