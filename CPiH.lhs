@@ -246,24 +246,75 @@ these lines. There are a few things to point out.
 The outer shell of our basic solution pipeline deals with converting
 between the raw strings used as input and output, and more
 semantically meaningful representations.  In many cases, it suffices
-to use basic Prelude list-processing functions.
+to use basic list-processing functions from \module{Prelude} or
+\module{Data.List}.
 
 \begin{itemize}
 \item For parsing input, some of the most frequently useful functions
   include |lines|, |words|, |drop|, and |read|.  The |split| function
-  from the \texttt{Data.List.Split} module (from the \texttt{split}
+  from the |Data.List.Split| module (from the \pkg{split}
   package) can also be helpful.
 \item For formatting output, some of the most frequently useful
   functions include |unlines|, |unwords|, |show|, |concat|,
   |intersperse|, and |intercalate|.
 \end{itemize}
 
-In \pref{chap:parsing} we will consider more sophisticated tools for
-parsing in particular, but until then we will stick to problems that
-only require these basic tools.  Fortunately there are many such
-problems.
+If any of these functions are unfamiliar to you, it's worth spending
+some time reading their documentation and trying them on some
+examples.  In \pref{chap:parsing} we will consider more sophisticated
+tools for parsing in particular, but until then we will stick to
+problems that only require these basic tools.  Fortunately, there are
+many such problems.
 
+Returning to our running example solving A Different Problem, the
+given input consists of a number of lines, each containing two
+numbers.  This is easily parsed using a combination of |lines|,
+|words|, |read|, and |map| (\pref{fig:parse-different}).
 
+\begin{figure}f
+  \centering
+\begin{code}
+  parse :: String -> [[Integer]]
+  parse = lines >>> map (words >>> map read)
+\end{code}
+  \caption{|parse| function for A Different Problem}
+  \label{fig:parse-different}
+\end{figure}
+
+As another example, consider the problem Pot
+\mbox{(\inlinekattis{pot})}.  The input description for this problem says
+
+\begin{quote}
+  The first line of input contains the integer $N (1 \leq N \leq 10)$, the number
+  of the addends from the task. Each of the following $N$ lines contains
+  the integer $P_i$ ($10 \leq P_i \leq 9999$, $i = 1, \dots, N$) from the task.
+\end{quote}
+
+At first glance, it looks like we need a more sophisticated parsing
+framework for this problem: the first line is a number which tells us
+\emph{how many} additional lines of input we need to parse.  The need
+for intermediate values to be able to affect later parsing is exactly
+what necessitates the use of a \emph{monadic} parsing framework.
+However, in this case, we can do something much simpler: just ignore
+the number entirely, and process all the lines besides the first!  We
+don't actually need the number to tell us how many lines to expect
+since the end of the input is delimited by EOF.
+
+\begin{code}
+parse :: String -> [Integer]
+parse = lines >>> drop 1 >>> map read
+\end{code}
+
+This approach often works. For example, even if we have a variable
+number of lines, each of which has a variable number of items (with a
+number at the beginning saying how many), we can ignore all the
+counts: just split into lines, drop the first line, and then split
+each line into words, dropping the first.  Besides the lines being
+delimited by EOF overall, each individual line is delimited by the end
+of line character, so we don't need XXX.  It doesn't work when we
+really have no way to tell when a certain section ends other than
+using the number at the beginning. For example, XXX multiple sections
+with variable numbers of lines.  We'll get to that in chapter XXX.
 
 \section{Using partial functions}
 \label{sec:partial}
