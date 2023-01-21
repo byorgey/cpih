@@ -10,3 +10,5 @@
 
 .shake/
 .stack-work/
+*.rubbercache
+_minted-*
