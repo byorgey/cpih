@@ -34,6 +34,10 @@
 
 \usepackage{prettyref}
 
+\usepackage{minted}
+
+\usepackage{todonotes}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% prettyref
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,12 +178,13 @@ output depend on which parts of the input. In particular, this means
 that that the entire input need not be stored in memory at once. If
 the inputs can be processed into outputs in a streaming fashion---as
 is the case in the example problem we are currently
-considering!---then the input and output will be interleaved.
+considering---then the input and output will be interleaved.
 
 Thus, the |interact| function lets us immediately pass to a functional
 view of a problem, worrying only about the essential details of
 transforming the given input into the requested output.  This is the
-last time |IO| will appear in this book!
+last time |IO| will appear in this book! \todo{Check this---maybe I
+  want to write about interactive problems.}
 
 \section{A basic solution pipeline}
 \label{sec:pipeline}
@@ -193,8 +198,8 @@ as follows:
 \item First, parse the input, that is, transform the raw input
   into some more semantically meaningful representation.
 \item Next, solve the problem, turning a semantically meaningful
-   representation of the input into a semantically meaningful
-   representation of the output.
+  representation of the input into a semantically meaningful
+  representation of the output.
 \item Finally, format the output into a |String|.
 \end{enumerate}
 Figure~\ref{fig:skeleton-different} has a simple skeleton solution along
@@ -202,7 +207,7 @@ these lines. There are a few things to point out.
 
 \begin{figure}
   \centering
-\begin{code}
+\begin{minted}{haskell}
   import Control.Arrow ((>>>))
 
   main = interact $ parse >>> map solve >>> format
@@ -215,7 +220,7 @@ these lines. There are a few things to point out.
 
   format :: [Integer] -> String
   format = _
-\end{code}
+\end{minted}
 % $
   \caption{A skeleton solution for A Different Problem}
   \label{fig:skeleton-different}
@@ -377,6 +382,9 @@ of them!  To start, look for problems with a difficulty rating less
 than 2.0.  To find such problems easily, you can go to the list of all
 problems (\url{http://open.kattis.com/problems/}) and sort by difficulty.
 
+\chapter{Parsing}
+\label{chap:parsing}
+
 \chapter{Wholemeal Programming}
 \label{chap:wholemeal}
 
@@ -388,9 +396,6 @@ lazy IO, etc.
 
 \chapter{Trees}
 \label{chap:trees}
-
-\chapter{Parsing}
-\label{chap:parsing}
 
 \chapter{Data Structures}
 \label{chap:data-structures}
