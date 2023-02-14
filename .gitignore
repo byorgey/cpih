@@ -3,7 +3,6 @@
 *.aux
 *.log
 *.pdf
-*.tex
 *.lock
 *.toc
 *.out

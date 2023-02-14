@@ -1,16 +1,6 @@
-% -*- mode: LaTeX; compile-command: "stack runhaskell --package shake -- Shake.hs" -*-
+% -*- mode: LaTeX; compile-command: "rubber -d --unsafe CPiH.tex" -*-
 
 \documentclass{book}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% lhs2TeX formatting
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% XXX switch to monospace font, with nice symbols?
-% XXX switch to just using minted?
-%include polycode.fmt
-
-%format >>> = ">\!\!>\!\!>"
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Packages
@@ -171,9 +161,9 @@ Competitive programming is functional at heart.
 
 It turns out that Haskell's standard library already has the perfect
 built-in function for this scenario:
-\begin{code}
+\begin{minted}{haskell}
 interact :: (String -> String) -> IO ()
-\end{code}
+\end{minted}
 \h{interact} takes a pure \h{String -> String} function and turns it into
 an \h{IO} action which reads from standard input, passes the input to
 the given function, and prints the result to standard output.  It even
@@ -436,8 +426,8 @@ Haskeller will think in terms of incrementally transforming the input
 into the desired output: first, filter out the strings we don't want;
 next, turn each string into its length; and finally sum the lengths.
 \begin{minted}{haskell}
-lengthWithoutEWholemeal :: [String] -> Int
-lengthWithoutEWholemeal = filter ('e' `notElem`) >>> map length >>> sum
+lengthWithoutE' :: [String] -> Int
+lengthWithoutE' = filter ('e' `notElem`) >>> map length >>> sum
 \end{minted}
 This is better in almost every way: it is shorter, easier to read and
 understand, easier to refactor, harder to get wrong, and easier to
