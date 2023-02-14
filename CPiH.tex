@@ -401,18 +401,20 @@ mistakes!---dealing with trivial low-level details.
 
 \section{Example: processing a list of strings}
 
-As a simple example, consider the problem of writing a function of
-type \h{[String] -> Int} which adds up the lengths of all strings that
-do not contain the letter \h{'e'}.  For example, given the input
-\h{["dog", "sheep", "horse", "capybara", "lemur"]}, the function
-should return 11 (the combined length of \h{"dog"} and
+As a simple example, consider the problem of writing a function which
+takes a list of strings as input, and adds up the lengths of all
+strings that do not contain the letter \h{'e'}.  For example, given
+the input
+\begin{minted}{haskell}
+["dog", "sheep", "horse", "capybara", "lemur"]
+\end{minted}
+the function should return 11 (the combined length of \h{"dog"} and
 \h{"capybara"}).
 
-A standard imperative approach to this problem involves looping over
+A standard imperative approach to this problem would be to loop over
 the list of words, updating an accumulator variable every time we see
 a string that does not contain the letter e.  An inexperienced
-Haskeller, steeped in imperative thinking, might produce something
-similar:
+Haskeller might produce something similar:
 \begin{minted}{haskell}
 lengthWithoutE :: [String] -> Int
 lengthWithoutE [] = 0
