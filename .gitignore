@@ -7,8 +7,13 @@
 *.lock
 *.toc
 *.out
+*.bbl
+*.bcf
+*.blg
+*.run.xml
 
 .shake/
 .stack-work/
+TAGS
 *.rubbercache
 _minted-*
