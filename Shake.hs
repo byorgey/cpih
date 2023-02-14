@@ -17,9 +17,9 @@ main = shake shakeOptions $ do
   "*.tex" %> \output -> do
       let input = output -<.> "lhs"
       need [input]
-      cmd lhs2TeX ["-o", output, input]
+      cmd lhs2TeX ["--tt", "-o", output, input]
 
   "*.pdf" %> \output -> do
       let input = output -<.> "tex"
-      need [input]
+      need [input, "references.bib"]
       cmd rubber ["-d", "--unsafe", input]

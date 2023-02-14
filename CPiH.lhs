@@ -7,6 +7,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % XXX switch to monospace font, with nice symbols?
+% XXX switch to just using minted?
 %include polycode.fmt
 
 %format >>> = ">\!\!>\!\!>"
@@ -37,6 +38,9 @@
 \usepackage{minted}
 
 \usepackage{todonotes}
+
+\usepackage[style=authoryear]{biblatex}
+\addbibresource{references.bib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% prettyref
@@ -73,6 +77,9 @@
 
 \newcommand{\module}[1]{\emph{#1}}
 \newcommand{\pkg}[1]{\texttt{#1}}
+\newcommand{\term}[1]{\emph{#1}}
+
+\newcommand{\h}[1]{\mintinline{haskell}{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Kattis
@@ -152,12 +159,12 @@ form.\footnote{There certainly can exist problems requiring
 problem involves doing a sequence of input commands, some computation,
 and a sequence of output commands---possibly interleaved with one
 another---and we might immediately think to start using functions like
-|getLine| and |putStrLn| to do the required I/O in Haskell.  However,
+\h{getLine} and \h{putStrLn} to do the required I/O in Haskell.  However,
 there is a much more fruitful functional perspective: we are simply
 being asked to implement a particular (partial) function of type
-|String -> String|.\footnote{If you are worried about the use of
-  |String|, fear not: in Chapter XXX, once we develop a simple parsing
-  framework, we will switch to |ByteString| for efficiency.}  The fact
+\h{String -> String}.\footnote{If you are worried about the use of
+  \h{String}, fear not: in Chapter XXX, once we develop a simple parsing
+  framework, we will switch to \h{ByteString} for efficiency.}  The fact
 that the function's input and output should be hooked up to the
 program's standard input and output is just an implementation detail.
 Competitive programming is functional at heart.
@@ -167,8 +174,8 @@ built-in function for this scenario:
 \begin{code}
 interact :: (String -> String) -> IO ()
 \end{code}
-|interact| takes a pure |String -> String| function and turns it into
-an |IO| action which reads from standard input, passes the input to
+\h{interact} takes a pure \h{String -> String} function and turns it into
+an \h{IO} action which reads from standard input, passes the input to
 the given function, and prints the result to standard output.  It even
 does this using \emph{lazy} I/O, which can be strange and problematic
 in some scenarios, but is perfect for this situation: the input is
@@ -180,10 +187,10 @@ the inputs can be processed into outputs in a streaming fashion---as
 is the case in the example problem we are currently
 considering---then the input and output will be interleaved.
 
-Thus, the |interact| function lets us immediately pass to a functional
+Thus, the \h{interact} function lets us immediately pass to a functional
 view of a problem, worrying only about the essential details of
 transforming the given input into the requested output.  This is the
-last time |IO| will appear in this book! \todo{Check this---maybe I
+last time \h{IO} will appear in this book! \todo{Check this---maybe I
   want to write about interactive problems.}
 
 \section{A basic solution pipeline}
@@ -200,7 +207,7 @@ as follows:
 \item Next, solve the problem, turning a semantically meaningful
   representation of the input into a semantically meaningful
   representation of the output.
-\item Finally, format the output into a |String|.
+\item Finally, format the output into a \h{String}.
 \end{enumerate}
 Figure~\ref{fig:skeleton-different} has a simple skeleton solution along
 these lines. There are a few things to point out.
@@ -228,36 +235,37 @@ these lines. There are a few things to point out.
 
 \begin{itemize}
 \item Notice the use of the backwards function composition operator
-  |(>>>)| from |Control.Arrow| (essentially, |f >>> g = g . f|,
-  although in actuality |(>>>)| is a bit more general than that).
+  \h{(>>>)} from \h{Control.Arrow} (essentially, \h{f >>> g = g . f},
+  although in actuality \h{(>>>)} is a bit more general than that).
   When solving programming problems, I like to be able to type
   function pipelines from left to right as I think about data flowing
   through the pipeline from beginning to end.  This is of course a
-  personal preference, and one could also write |format . solve
-  . parse| instead of |parse >>> solve >>> format|.
+  personal preference, and one could also write%
+  \h{format . solve . parse} instead of%
+  \h{parse >>> solve >>> format}.
 \item If the machine on which our solution will run has a 64-bit
   architecture (this is always true for Open Kattis, but not
   necessarily so for other platforms such as Codeforces), for this
-  problem we could technically get away with using |Int| instead of
-  |Integer|. On a 64-bit architecture, |maxBound :: Int| is $2^{63} -
+  problem we could technically get away with using \h{Int} instead of
+  \h{Integer}. On a 64-bit architecture, \h{maxBound :: Int} is $2^{63} -
   1$, which is a bit more than $9 \times
   10^{18}$, plenty big enough for this problem, with inputs only up to
-  $10^{15}$. For more computationally intensive problems, using |Int|
-  instead of |Integer| can be an important optimization; however, for
-  simple problems, using |Integer| is preferred since it eliminates
+  $10^{15}$. For more computationally intensive problems, using \h{Int}
+  instead of \h{Integer} can be an important optimization; however, for
+  simple problems, using \h{Integer} is preferred since it eliminates
   the potential for bugs due to overflow.
 
-\item In simple problems such as this, the |solve| function could
+\item In simple problems such as this, the \h{solve} function could
   probably be inlined (it can be a fun challenge to solve easy
   problems in a single line of code!).  However, in general, I prefer
   to split it out explicitly in order to specify its type, which both
-  prevents problems with |read|/|show| ambiguity, and also serves as a
+  prevents problems with \h{read}/\h{show} ambiguity, and also serves as a
   sanity check on the parsing and formatting code.
 
 \item And one last thing: I said we were going to parse the input into
   a ``semantically meaningful representation'', but I lied a teensy
   bit: the problem says we are going to get a \emph{pair} of integers,
-  but the type of |solve| says that it takes a \emph{list} of
+  but the type of \h{solve} says that it takes a \emph{list} of
   integers.  We will discuss and justify this choice in more detail in
   \pref{sec:partial}.
 \end{itemize}
@@ -277,12 +285,12 @@ to use basic list-processing functions from \module{Prelude} or
 
 \begin{itemize}
 \item For parsing input, some of the most frequently useful functions
-  include |lines|, |words|, |drop|, and |read|.  The |split| function
-  from the |Data.List.Split| module (from the \pkg{split}
+  include \h{lines}, \h{words}, \h{drop}, and \h{read}.  The \h{split} function
+  from the \h{Data.List.Split} module (from the \pkg{split}
   package) can also be helpful.
 \item For formatting output, some of the most frequently useful
-  functions include |unlines|, |unwords|, |show|, |concat|,
-  |intersperse|, and |intercalate|.
+  functions include \h{unlines}, \h{unwords}, \h{show}, \h{concat},
+  \h{intersperse}, and \h{intercalate}.
 \end{itemize}
 
 If any of these functions are unfamiliar to you, it's worth spending
@@ -294,16 +302,16 @@ many such problems.
 
 Returning to our running example solving A Different Problem, the
 given input consists of a number of lines, each containing two
-numbers.  This is easily parsed using a combination of |lines|,
-|words|, |read|, and |map| (\pref{fig:parse-different}).
+numbers.  This is easily parsed using a combination of \h{lines},
+\h{words}, \h{read}, and \h{map} (\pref{fig:parse-different}).
 
-\begin{figure}f
+\begin{figure}
   \centering
-\begin{code}
+\begin{minted}{haskell}
   parse :: String -> [[Integer]]
   parse = lines >>> map (words >>> map read)
-\end{code}
-  \caption{|parse| function for A Different Problem}
+\end{minted}
+  \caption{\h{parse} function for A Different Problem}
   \label{fig:parse-different}
 \end{figure}
 
@@ -326,10 +334,10 @@ the number entirely, and process all the lines besides the first!  We
 don't actually need the number to tell us how many lines to expect
 since the end of the input is delimited by EOF.
 
-\begin{code}
+\begin{minted}{haskell}
 parse :: String -> [Integer]
 parse = lines >>> drop 1 >>> map read
-\end{code}
+\end{minted}
 
 This approach often works. For example, even if we have a variable
 number of lines, each of which has a variable number of items (with a
@@ -345,8 +353,8 @@ with variable numbers of lines.  We'll get to that in chapter XXX.
 \section{Using partial functions}
 \label{sec:partial}
 
-You might wonder about using a list as the output of |parse| and the
-input of |solve|.  Shouldn't we use something like |(Int,Int)|, since
+You might wonder about using a list as the output of \h{parse} and the
+input of \h{solve}.  Shouldn't we use something like \h{(Int,Int)}, since
 we know we will be given exactly two integers? XXX paste in blog post
 about this.  Note you can skip if you're not interested in the
 philosophy
@@ -355,15 +363,15 @@ philosophy
   solutions, because they are too awkward and
   inconvenient. Representing homogeneous tuples as Haskell lists of a
   certain known length allows us to read and process ``tuples'' using
-  standard functions like |words| and |map|, to combine them using
-  |zipWith|, and so on.  And since we get to assume that the input
+  standard functions like \h{words} and \h{map}, to combine them using
+  \h{zipWith}, and so on.  And since we get to assume that the input
   always precisely follows the specification---which will never
   change---this is one of the few situations where, in my opinion, we
   are fully justified in writing partial functions like this if it
   makes the code easier to write.  So I often represent homogeneous
   tuples as lists and just pattern match on lists of the appropriate
   (known) length.  (If I need heterogeneous tuples, on the other hand,
-  I create an appropriate |data| type.)
+  I create an appropriate \h{data} type.)
 
 \section{Explicit recursion}
 \label{sec:explicit-recursion}
@@ -382,14 +390,71 @@ of them!  To start, look for problems with a difficulty rating less
 than 2.0.  To find such problems easily, you can go to the list of all
 problems (\url{http://open.kattis.com/problems/}) and sort by difficulty.
 
-\chapter{Parsing}
-\label{chap:parsing}
-
-\chapter{Wholemeal Programming}
+\chapter{Basic Data Structures and Wholemeal Programming}
 \label{chap:wholemeal}
 
-XXX already touched on this a bit in previous section re: interact,
-lazy IO, etc.
+As we have seen in the previous chapter, functional programming
+encourages us to think in terms of assembling functions into pipelines
+that incrementally transform an input into an output.  \term{Wholemeal
+  programming} is a closely related concept, explained best by Ralf
+Hinze \parencite*{hinze2009tour}:
+\begin{quote}
+  Functional languages excel at wholemeal programming, a term coined
+  by Geraint Jones. Wholemeal programming means to think big: work
+  with an entire list, rather than a sequence of elements; develop a
+  solution space, rather than an individual solution; imagine a graph,
+  rather than a single path.
+\end{quote}
+This is often a very fruitful approach to solving competitive
+programming problems.  It helps us avoid getting lost---or making
+mistakes!---dealing with trivial low-level details.
+
+\section{Example: processing a list of strings}
+
+As a simple example, consider the problem of writing a function of
+type \h{[String] -> Int} which adds up the lengths of all strings that
+do not contain the letter \h{'e'}.  For example, given the input
+\h{["dog", "sheep", "horse", "capybara", "lemur"]}, the function
+should return 11 (the combined length of \h{"dog"} and
+\h{"capybara"}).
+
+A standard imperative approach to this problem involves looping over
+the list of words, updating an accumulator variable every time we see
+a string that does not contain the letter e.  An inexperienced
+Haskeller, steeped in imperative thinking, might produce something
+similar:
+\begin{minted}{haskell}
+lengthWithoutE :: [String] -> Int
+lengthWithoutE [] = 0
+lengthWithoutE (s:ss)
+  | 'e' `elem` s = lengthWithoutE ss
+  | otherwise = length s + lengthWithoutE ss
+\end{minted}
+This code works, but there is a better way.  Instead of thinking in
+terms of processing the list one item at a time, an experienced
+Haskeller will think in terms of incrementally transforming the input
+into the desired output: first, filter out the strings we don't want;
+next, turn each string into its length; and finally sum the lengths.
+\begin{minted}{haskell}
+lengthWithoutEWholemeal :: [String] -> Int
+lengthWithoutEWholemeal = filter ('e' `notElem`) >>> map length >>> sum
+\end{minted}
+This is better in almost every way: it is shorter, easier to read and
+understand, easier to refactor, harder to get wrong, and easier to
+prove correct.
+
+Experienced programmers might worry about efficiency: doesn't this do
+three passes over the list instead of just one?  Even worse, doesn't
+it construct several intermediate lists from scratch?  Actually,
+Haskell's laziness, combined with optimization technology like list
+fusion, make this very efficient in practice.  And in any case, we
+usually don't need to worry much about constant factors as long as we
+have the right asymptotic complexity.
+
+\section{Basic data structures}
+
+\chapter{Parsing}
+\label{chap:parsing}
 
 \chapter{Monoids}
 \label{chap:monoids}
@@ -424,7 +489,6 @@ lazy IO, etc.
 \chapter{Miscellaneous Topics}
 \label{chap:misc}
 
-
-
+\printbibliography
 
 \end{document}
