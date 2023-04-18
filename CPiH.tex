@@ -84,7 +84,7 @@
 }
 
 \newcommand{\kattis}[1]{%
-  \begin{mdframed}
+  \begin{mdframed}[frametitle={Practice problems}]
     \kattislogo
     \kattislist{#1}
   \end{mdframed}
@@ -369,16 +369,15 @@ philosophy
 \section{Practice problems}
 \label{sec:gs-practice}
 
-Here are a few simple problems for you to practice on.
+Below are a few simple problems for you to practice on.  This is just
+a very small sample; there are many, many problems on Open Kattis that
+can be solved with not much more than the techniques explained in this
+chapter, and I encourage you to just solve a bunch of them!  To start,
+look for problems with a difficulty rating less than 2.0.  To find
+such problems easily, you can go to the list of all problems
+(\url{http://open.kattis.com/problems/}) and sort by difficulty.
 
 \kattis{jobexpenses, judgingmoose, quickestimate}
-
-This is just a very small sample; there are many, many problems on
-Open Kattis that can be solved with not much more than the techniques
-explained in this chapter, and I encourage you to just solve a bunch
-of them!  To start, look for problems with a difficulty rating less
-than 2.0.  To find such problems easily, you can go to the list of all
-problems (\url{http://open.kattis.com/problems/}) and sort by difficulty.
 
 \chapter{Basic Data Structures and Wholemeal Programming}
 \label{chap:wholemeal}
@@ -444,6 +443,50 @@ usually don't need to worry much about constant factors as long as we
 have the right asymptotic complexity.
 
 \section{Basic data structures}
+
+Wholemeal programming in Haskell usually revolves around the use of
+several basic data types provided in Haskell standard libraries, such
+as lists, \h{Set}, \h{Map}, \h{Tree}, and \h{Array}.  We will touch on
+each of these, highlighting their important features and suggesting
+some practice problems to solve
+
+\subsection{Lists}
+\label{sec:lists}
+
+Lists (including \h{String}s) are ubiquitous in Haskell, and the
+standard library provides a large number of useful list-processing
+functions.  Trying to come up with a specific list functions which are
+of use in competitive programming would be a fool's errand, since
+almost all of the standard \h{Data.List} functions
+(\url{https://hackage.haskell.org/package/base-4.18.0.0/docs/Data-List.html})
+can be of use.  If you're not already familiar with all the standard
+list functions, you should spend time looking through the
+documentation and practicing their use, especially if you want to be
+able to solve easy problems quickly.
+
+One thing worth mentioning is 
+
+XXX lists as control vs lots of small list data structures
+
+\kattis{foo, bar}
+
+\subsection{Sets}
+\label{sec:sets}
+
+The standard \h{Data.Set} type stores elements in a balanced tree
+structure.  This is not as fast as a hash table, but quite fast in
+practice, and provides a much richer API than a hash-based data
+structure. (The \pkg{unordered-containers} package---which is available
+in the Open Kattis test environment---does provide \h{Data.HashSet}, but
+it's rarely needed.)
+
+It is worth being familiar with
+
+\subsection{Maps}
+\label{sec:maps}
+
+\subsection{Arrays}
+\label{sec:arrays}
 
 \chapter{Parsing}
 \label{chap:parsing}
