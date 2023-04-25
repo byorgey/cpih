@@ -379,7 +379,7 @@ such problems easily, you can go to the list of all problems
 
 \kattis{jobexpenses, judgingmoose, quickestimate}
 
-\chapter{Basic Data Structures and Wholemeal Programming}
+\chapter{Wholemeal Programming}
 \label{chap:wholemeal}
 
 As we have seen in the previous chapter, functional programming
@@ -474,13 +474,75 @@ XXX lists as control vs lots of small list data structures
 \label{sec:sets}
 
 The standard \h{Data.Set} type stores elements in a balanced tree
-structure.  This is not as fast as a hash table, but quite fast in
+structure, so most operations take time logarithmic in the number of
+items stored.  This is not as fast as a hash table, but quite fast in
 practice, and provides a much richer API than a hash-based data
-structure. (The \pkg{unordered-containers} package---which is available
-in the Open Kattis test environment---does provide \h{Data.HashSet}, but
-it's rarely needed.)
+structure. (The \pkg{unordered-containers} package---which is
+available in the Open Kattis test environment---does provide
+\h{Data.HashSet}, but it's rarely needed.)
 
-It is worth being familiar with
+It is worth having a good working knowledge of standard \h{Set}
+functions like \h{empty}, \h{singleton}, \h{fromList}, \h{toList},
+\h{insert}, \h{delete}, \h{union}/\h{unions}, \h{intersection},
+\h{difference}, \h{map}, \h{filter}, \h{member}, \h{null}, and
+\h{size}.
+
+There are many others which are occasionally useful and can be looked
+up in the documentation when needed, such as (but not limited to)
+\h{split}, \h{takeWhile}, \h{lookupIndex}, \h{lookupGT}, \h{elemAt},
+and \h{findMin}/\h{findMax}.
+
+\subsubsection{Example: Booking a Room}
+
+As an example, consider \inlinekattis{bookingaroom}.  We are given as
+input integers $r$ and $n$, and then list of $n$ integers which are
+between $1$ and $r$ inclusive, representing hotel rooms which are
+booked.  We must output the number of some available room (or an error
+message if all rooms are booked).
+
+There are many ways to solve this.  One simple way might be to just
+read the given numbers into a list, and then check every number from
+$1$ to $r$ to see if it is a member of the list or not (using
+\h{elem}), and print the first one we find which is not.  This
+solution would take $O(nr)$ time.  Since $n$ and $r$ are guaranteed to
+be at most $100$, it would work, but we can do better---not only in an
+asymptotic sense, but in terms of code size!  Checking every number
+from $1$ to $r$ has a very ``imperative'' feel; we are looping through
+some items and doing something with each one individually.  Instead,
+we can think in terms of computing the \emph{entire} set of available
+rooms at once, by taking the difference of the set of all rooms
+$\{1 \dots r\}$ and the set of booked rooms.  Picking one arbitrary
+element from a \h{Set} can then be accomplished either by converting
+to a list and picking the first element (\emph{i.e.}  \h{listToMaybe
+  . toList}), or, even better, we can use the built-in
+\h{Data.Set.lookupMin :: Ord a => Set a -> Maybe
+  a}. \pref{fig:bookingaroom} demonstrates a complete solution.
+
+\begin{figure}
+  \centering
+\begin{minted}{haskell}
+import           Control.Arrow ((>>>))
+import qualified Data.Set      as S
+
+main :: IO ()
+main = interact $ words >>> parse >>> solve
+
+data Hotel = Hotel
+  { numRooms :: Int
+  , booked   :: [Int]
+  }
+
+parse :: [String] -> Hotel
+parse (r:_:rs) = Hotel (read r) (map read rs)
+
+solve :: Hotel -> String
+solve (Hotel r rs) =
+  maybe "too late" show . S.lookupMin
+  $ S.fromList [1..r] `S.difference` S.fromList rs
+\end{minted}
+  \caption{Booking a Room solution}
+  \label{fig:bookingaroom}
+\end{figure}
 
 \subsection{Maps}
 \label{sec:maps}
