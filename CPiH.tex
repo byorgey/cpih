@@ -455,18 +455,29 @@ some practice problems to solve
 
 Lists (including \h{String}s) are ubiquitous in Haskell, and the
 standard library provides a large number of useful list-processing
-functions.  Trying to come up with a specific list functions which are
-of use in competitive programming would be a fool's errand, since
-almost all of the standard \h{Data.List} functions
+functions.  Trying to come up with a specific catalog of list
+functions which are of use in competitive programming would be a
+fool's errand, since almost all of the standard \h{Data.List}
+functions
 (\url{https://hackage.haskell.org/package/base-4.18.0.0/docs/Data-List.html})
 can be of use.  If you're not already familiar with all the standard
 list functions, you should spend time looking through the
 documentation and practicing their use, especially if you want to be
 able to solve easy problems quickly.
 
-One thing worth mentioning is 
-
-XXX lists as control vs lots of small list data structures
+One thing worth mentioning is efficiency: lists have quite a bit of
+extra overhead compared to arrays. To avoid this becoming an issue, we
+should aim to use lists as \emph{control structures} rather than
+\emph{data structures}. That is, in a situation where you would write
+a \texttt{for} loop in an imperative language, you can probably safely
+use a list in Haskell.  It is perfectly fine to have a long list and
+then iterate over it multiple times with standard functions like
+\h{map}, \h{filter}, and so on.  The multiple traversals may fuse
+away, and even if they don't the extra overhead is unlikely to make a
+big difference.  What you definitely don't want to do is use many
+small lists as data structures.  That is, having two lists with $10^5$
+elements each is probably fine; having $10^5$ lists with two elements
+each is probably going to be too slow.
 
 \kattis{foo, bar}
 
@@ -546,6 +557,34 @@ solve (Hotel r rs) =
 
 \subsection{Maps}
 \label{sec:maps}
+
+The standard \h{Data.Map} type stores key-value mappings in a balanced
+tree structure, so, like \h{Data.Set}, most operations take time
+logarithmic in the number of items stored.  A hash table-based map
+such as \h{Data.HashMap} would be faster in theory, but \h{Data.Map}
+is quite fast in practice.  There are other map variants as well, such
+as \h{Data.Map.Strict} or \h{Data.IntMap}. In my experience it doesn't
+make a whole lot of difference.  I tend to just stick to \h{Data.Map};
+I don't know of any problems where using a different map variant makes
+a significant difference.
+
+It is worth having a good working knowledge of standard \h{Map}
+functions like XXX
+
+% \h{empty}, \h{singleton}, \h{fromList}, \h{toList},
+% \h{insert}, \h{delete}, \h{union}/\h{unions}, \h{intersection},
+% \h{difference}, \h{map}, \h{filter}, \h{member}, \h{null}, and
+% \h{size}.
+
+There are many others which are occasionally useful and can be looked
+up in the documentation when needed, such as (but not limited to) XXX
+
+% \h{split}, \h{takeWhile}, \h{lookupIndex}, \h{lookupGT}, \h{elemAt},
+% and \h{findMin}/\h{findMax}.
+
+practice
+
+https://open.kattis.com/problems/pakethanterare
 
 \subsection{Arrays}
 \label{sec:arrays}
