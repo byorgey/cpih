@@ -110,6 +110,8 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+\todo{code style: stylish-haskell? fourmolu?}
+
 \chapter{Getting Started}
 \label{chap:getting-started}
 
@@ -448,7 +450,7 @@ Wholemeal programming in Haskell usually revolves around the use of
 several basic data types provided in Haskell standard libraries, such
 as lists, \h{Set}, \h{Map}, \h{Tree}, and \h{Array}.  We will touch on
 each of these, highlighting their important features and suggesting
-some practice problems to solve
+some practice problems to solve.
 
 \subsection{Lists}
 \label{sec:lists}
@@ -475,9 +477,9 @@ then iterate over it multiple times with standard functions like
 \h{map}, \h{filter}, and so on.  The multiple traversals may fuse
 away, and even if they don't the extra overhead is unlikely to make a
 big difference.  What you definitely don't want to do is use many
-small lists as data structures.  That is, having two lists with $10^5$
-elements each is probably fine; having $10^5$ lists with two elements
-each is probably going to be too slow.
+small lists as data structures.  That is, for example, having two
+lists with $10^5$ elements each is probably fine; having $10^5$ lists
+with two elements each is probably going to be too slow.
 
 \kattis{foo, bar}
 
@@ -555,6 +557,8 @@ solve (Hotel r rs) =
   \label{fig:bookingaroom}
 \end{figure}
 
+\kattis{foo, bar}
+
 \subsection{Maps}
 \label{sec:maps}
 
@@ -563,31 +567,45 @@ tree structure, so, like \h{Data.Set}, most operations take time
 logarithmic in the number of items stored.  A hash table-based map
 such as \h{Data.HashMap} would be faster in theory, but \h{Data.Map}
 is quite fast in practice.  There are other map variants as well, such
-as \h{Data.Map.Strict} or \h{Data.IntMap}. In my experience it doesn't
-make a whole lot of difference.  I tend to just stick to \h{Data.Map};
-I don't know of any problems where using a different map variant makes
-a significant difference.
+as \h{Data.Map.Strict} or \h{Data.IntMap}. In my experience it usually
+doesn't make a whole lot of difference, and I mostly stick to
+\h{Data.Map} (\pref{chap:dp} will explain one particular application
+of lazy, as opposed to strict, maps).  The major exceptions seem to
+be:
+
+\begin{itemize}
+\item If you want to make a large map with string (\h{ByteString})
+  keys, a \h{HashMap} can be considerably faster than \h{Map}
+  (\inlinekattis{pakethanterare}).
+\item \todo{When is IntMap faster?}
+\end{itemize}
 
 It is worth having a good working knowledge of standard \h{Map}
-functions like XXX
+functions like \h{empty}, \h{null}, \h{size}, \h{singleton},
+\h{fromList}, \h{fromListWith}, \h{assocs}, \h{elems}, \h{keys},
+\h{keysSet}, \h{insert}, \h{insertWith}, \h{delete}, \h{alter},
+\h{lookup}, \h{member}, \h{union}, \h{unionWith}, \h{intersection},
+\h{intersectionWith}, and \h{map}.  \h{Map k} is also an instance of
+\h{Functor}, \h{Foldable}, and \h{Traversable}, allowing the use of
+standard functions like \h{fmap}, \h{foldMap}, \h{sum}, \h{maximum},
+\h{minimum}, and \h{traverse}/\h{mapM}. There are many, many
+other functions which are occasionally useful and can be looked up in
+the documentation when needed, such as (but not limited to)
+\h{compose}, \h{split}, \h{restrictKeys}, \h{partition}, \h{mapMaybe},
+\h{updateAt}, \h{take}, \h{drop}, and \h{findMin}/\h{findMax}.
 
-% \h{empty}, \h{singleton}, \h{fromList}, \h{toList},
-% \h{insert}, \h{delete}, \h{union}/\h{unions}, \h{intersection},
-% \h{difference}, \h{map}, \h{filter}, \h{member}, \h{null}, and
-% \h{size}.
-
-There are many others which are occasionally useful and can be looked
-up in the documentation when needed, such as (but not limited to) XXX
-
-% \h{split}, \h{takeWhile}, \h{lookupIndex}, \h{lookupGT}, \h{elemAt},
-% and \h{findMin}/\h{findMax}.
-
-practice
-
-https://open.kattis.com/problems/pakethanterare
+\kattis{pakethanterare}
 
 \subsection{Arrays}
 \label{sec:arrays}
+
+\subsection{Trees}
+\label{sec:trees}
+
+\section{Additional practice problems}
+\label{sec:wholemeal-practice}
+
+\kattis{foo,bar}
 
 \chapter{Parsing}
 \label{chap:parsing}
