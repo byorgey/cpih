@@ -620,8 +620,260 @@ the documentation when needed, such as (but not limited to)
 
 \kattis{foo,bar}
 
-\chapter{Parsing}
+\chapter{Input Parsing}
 \label{chap:parsing}
+
+So far, all the example problems we have considered have input in a
+format that we were able to parse using simple standard functions like
+\h{lines} and \h{words}.  There is another common class of problems,
+however, which follow this pattern:
+
+\begin{quote}
+The first line of the input consists of an integer $T$.  Each of the
+next $T$ lines consists of \dots
+\end{quote}
+
+That is, the input contains integers which are not input data per se,
+but just tell you how many things are to follow. This is really easy
+to process in an imperative language like Java or C++.  For example,
+in Java we might write code like this:
+
+\begin{minted}{java}
+Scanner in = new Scanner(System.in);
+int T = in.nextInt();
+for (int i = 0; i < T; i++) {
+   // process each line
+}
+\end{minted}
+
+As we already saw in \pref{chap:getting-started}, we can often get
+away with completely ignoring this extra information.  For example, if
+the input consists of a number $T$ followed by $T$ lines, each of
+which contains a number $n$ followed by a list of $n$ numbers, we can
+simply write
+
+\begin{minted}{haskell}
+main = interact $
+  lines >>> drop 1 >>> map (words >>> drop 1 >>> map read) >>> ...
+\end{minted}
+%$
+
+That is, we can ignore the first line containing $T$ since the
+end-of-file will tell us how many lines there are; and we can ignore
+the $n$ at the beginning of each line, since the newline character
+tells us when the list on that line is done.
+
+Sometimes, however, this isn't possible, especially when there are
+multiple test cases, or when a single test case has multiple parts,
+each of which can have a variable length.  For example, consider
+Popular Vote (\inlinekattis{vote}), which describes
+its input as follows:
+
+\begin{quote}
+The first line of input contains a single positive integer $T \leq 500$
+indicating the number of test cases. The first line of each test case
+also contains a single positive integer $n$ indicating the number of
+candidates in the election. This is followed by $n$ lines, with the $i$th
+line containing a single nonnegative integer indicating the number of
+votes candidate $i$ received.
+\end{quote}
+
+How would we parse this?  We could still ignore $T$---just keep reading
+until the end of the file---but there's no way we can ignore the $n$
+values. Since the values for each test case are all on separate lines
+instead of on one line, there's otherwise no way to know when one test
+case ends and the next begins.
+
+One possible approach would be to use \h{splitAt} and explicit
+recursion, like so:
+
+\begin{minted}{haskell}
+type Election = [Int]
+
+readInput :: String -> [Election]
+readInput = lines >>> drop 1 {- ignore T -} >>> map read >>> go
+  where
+    go :: [Int] -> [Election]
+    go []     = []
+    go (n:xs) = votes : go rest
+      where (votes,rest) = splitAt n xs
+\end{minted}
+
+However, this is really annoying to write and easy to get wrong.
+There are way too many variable names to keep track of (\h{n}, \h{xs},
+\h{votes}, \h{rest}, \h{go}) and for more complex inputs it becomes
+simply unmanageable.  You might think we should switch to using a real
+parser combinator library---\h{parsec} is indeed installed in the
+environment Kattis uses to run Haskell solutions---and although
+sometimes a full-blown parser combinator library is needed
+(\pref{chap:parser-combs}), in this case it's quite a bit more
+heavyweight than we would like.
+
+\section{Scanner}
+\label{sec:scanner}
+
+The heart of the issue is that we want to be able to specify a
+high-level description of the sequence of things we expect to see in
+the input, without worrying about managing the stream of tokens
+explicitly.  Another key insight is that 99\% of the time, we
+\emph{don't} need the ability to deal with parse failure or the
+ability to parse multiple alternatives.  With these insights in mind,
+we can create a very simple \h{Scanner} abstraction, which is just a
+\h{State}ful computation over a list of tokens:
+
+\begin{minted}{haskell}
+type Scanner = State [String]
+
+runScanner :: Scanner a -> String -> a
+runScanner s = evalState s . words
+\end{minted}
+
+To run a scanner, we just feed it the entire input as a \h{String},
+which gets chopped into tokens using \h{words}.  (Of course in some
+scenarios we might want to use \h{lines} instead of \h{words}, or even do
+more complex tokenization.)
+
+Note since \h{Scanner} is just a type synonym for \h{State [String]}, it
+is automatically an instance of \h{Functor}, \h{Applicative}, and
+\h{Monad} (but not \h{Alternative}).
+
+So let's develop a little \h{Scanner} DSL.  The most fundamental thing
+we can do is read the next token.
+
+\begin{minted}{haskell}
+str :: Scanner String
+str = get >>= \case { s:ss -> put ss >> return s }
+\end{minted}
+
+(This uses the \h{LambdaCase} extension\todo{reference}, though we
+could easily rewrite it without.)  \h{str} gets the current list of
+tokens, puts it back without the first token, and returns the first
+token.  Note that I purposely didn't include a case for the empty
+list.  You might think we want to include a case for the empty token
+list and have it return the empty string or something like that.  But
+since the input will always be properly formatted, if this scenario
+ever happens it means our program has a bug---for example, perhaps I
+misunderstood the description of the input format.  In this scenario we
+\emph{want} it to crash loudly, as soon as possible, rather than
+continuing on with some bogus data.
+
+We can now add some scanners for reading specific token types other
+than \h{String}, simply by mapping the \h{read} function over the output
+of \h{str}:
+
+\begin{minted}{haskell}
+int :: Scanner Int
+int = read <$> str
+
+integer :: Scanner Integer
+integer = read <$> str
+
+double :: Scanner Double
+double = read <$> str
+\end{minted}
+%$
+
+Again, these will crash if they see a token in an unexpected format,
+and that is a very deliberate choice.
+
+Now, as explained earlier, a very common pattern is to have an
+integer $n$ followed by $n$ copies of something.  So let's make a
+combinator to encapsulate that pattern:
+\begin{minted}{haskell}
+numberOf :: Scanner a -> Scanner [a]
+numberOf s = int >>= flip replicateM s
+\end{minted}
+\h{numberOf s} expects to first see an \h{Int} value $n$, and then it runs
+the provided scanner $n$ times, returning a list of the results.
+
+It's also sometimes useful to have a way to repeat a \h{Scanner} some
+unknown number of times until encountering EOF (for example, the input
+for some problems doesn't specify the number of test cases up front
+the way that Popular Vote does).  This is similar to the \h{many}
+combinator from \h{Alternative}.
+\begin{minted}{haskell}
+many :: Scanner a -> Scanner [a]
+many s = get >>= \case { [] -> return []; _ -> (:) <$> s <*> many s }
+\end{minted}
+%$
+\h{many s} repeats the scanner \h{s} as many times as it can, returning a
+list of the results.  In particular it first peeks at the current
+token list to see if it is empty.  If so, it returns the empty list of
+results; if there are more tokens, it runs \h{s} once and then
+recursively calls \h{many s}, consing the results together.
+
+Finally, it's quite common to want to parse a specific small number of
+something, for example, two double values representing a 2D coordinate pair.
+We could just write \h{replicateM 2 double}, but this is common enough
+that I find it helpful to define dedicated combinators with short
+names:
+\begin{minted}{haskell}
+two, three, four :: Scanner a -> Scanner [a]
+[two, three, four] = map replicateM [2..4]
+\end{minted}
+
+\todo{Show complete code listing? Or put it in Appendix?  In any case,
+  link to complete code on GitHub.}
+
+\section{Examples}
+
+So what have we gained?  Writing the parser for Popular Vote is now
+almost trivial:
+\begin{minted}{haskell}
+type Election = [Int]
+
+main = interact $ runScanner elections >>> ...
+
+elections :: Scanner [Election]
+elections = numberOf (numberOf int)
+\end{minted}
+%$
+
+In practice I would probably just inline the definition of \h{elections}
+directly: \h{interact $ runScanner (numberOf (numberOf int)) >>> ...}
+%$
+
+As a slightly more involved example, chosen almost at random, consider
+Board Wrapping (\inlinekattis{wrapping}):
+\begin{quote}
+On the first line of input there is one integer, $N \leq 50$, giving
+the number of test cases (moulds) in the input. After this line, $N$
+test cases follow. Each test case starts with a line containing one
+integer $n, 1 \leq n \leq 600$, which is the number of boards in the
+mould. Then $n$ lines follow, each with five floating point numbers
+$x,y,w,h,v$ where $0 \leq x,y,w,h \leq 10000$ and $-90^{\circ} < v
+\leq 90^{\circ}$. The $x$ and $y$ are the coordinates of the center of
+the board and $w$ and $h$ are the width and height of the board,
+respectively. $v$ is the angle between the height axis of the board to
+the $y$-axis in degrees, positive clockwise.
+\end{quote}
+
+Here's how I would set up the input, using \h{Scanner} and a custom data
+type to represent boards.
+
+\begin{minted}{haskell}
+import Scanner
+
+type V = [Double]     -- 2D vectors/points
+newtype A = A Double  -- angle (radians)
+                      -- newtype helps avoid conversion errors
+
+fromDeg :: Double -> A
+fromDeg d = A (d * pi / 180)
+
+data Board = Board { boardLoc :: V, boardDims :: V, boardAngle :: A }
+
+board :: Scanner Board
+board = Board
+  <$> two double
+  <*> two double
+  <*> ((fromDeg . negate) <$> double)
+
+main = interact $
+  runScanner (numberOf (numberOf board)) >>> ...
+\end{minted}
+
+\section{ByteString}
 
 \chapter{Monoids}
 \label{chap:monoids}
@@ -649,6 +901,9 @@ the documentation when needed, such as (but not limited to)
 
 \chapter{Strings}
 \label{chap:strings}
+
+\chapter{Parser Combinators}
+\label{chap:parser-comb}
 
 \chapter{Mutability}
 \label{chap:mutability}
