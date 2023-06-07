@@ -872,8 +872,139 @@ board = Board
 main = interact $
   runScanner (numberOf (numberOf board)) >>> ...
 \end{minted}
+%$
 
 \section{ByteString}
+
+Using the \h{String} type for input can be convenient, since we get to
+use all the standard library list functions, but sometimes \h{String}
+isn't good enough.
+
+A good example is the problem Army Strength (Hard)
+(\inlinekattis{armystrengthhard}).  There are a number of separate
+test cases; each test case consists of two lines of positive integers
+which record the strengths of monsters in two different armies.
+Supposedly the armies will have a sequence of battles, where the
+weakest monster dies each time, with some complex-sounding rules about
+how to break ties. It sounds way more complicated than it really is,
+though; a bit of thought reveals that to find out who wins we really
+just need to see which army's maximum-strength monster is strongest.
+
+So our strategy for each test case is to read in the two lists of
+integers, find the maximum of each list, and compare.  Seems pretty
+straightforward, right?  Something like this:
+
+\begin{minted}{haskell}
+import Control.Arrow
+import Data.List.Split
+
+main = interact $
+  lines >>> drop 1 >>> chunksOf 4 >>>
+  map (drop 2 >>> map (words >>> map read) >>> solve) >>>
+  unlines
+
+solve :: [[Int]] -> String
+solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
+  LT -> "MechaGodzilla"
+  _  -> "Godzilla"
+\end{minted}
+%$
+
+Note we didn't actually use the \h{Scanner} abstraction here, though
+we could have; in this case it's actually easier to just ignore the
+numbers telling us how many test cases there are and the length of
+each line, and just split up the input by lines and go from there.
+
+This seems straightforward enough, but sadly, it results in a Time
+Limit Exceeded (TLE) error on the third of three test cases.
+Apparently this program takes longer than the allowed 1 second.
+What's going on?
+
+If we look carefully at the limits for the problem, we see that there
+could be up to $50$ test cases, each test case could have two lists of
+length $10^5$, and the numbers in the lists can be up to $10^9$.  If
+all those are maxed out (as they probably are in the third, secret
+test case), we are looking at an input file many megabytes in size.
+At that point the time to simply read the input is a big factor.
+Reading the input as a \h{String} has a lot of overhead: each
+character gets its own cons cell, which form a linked list in memory;
+breaking the input into lines and words requires traversing over these
+cons cells one by one.  We need a representation with less overhead.
+
+Now, if this were a \emph{real} application, we would reach for
+\h{Text}, which is made for representing textual information and can
+correctly handle Unicode encodings and all that good stuff.  However,
+this isn't a real application: competitive programming problems
+\emph{always} limit the input and output strictly to ASCII, so
+characters are synonymous with bytes.  Therefore we will commit a
+``double no-no'': not only are we going to use \h{ByteString} to
+represent text, we're going to use \h{Data.ByteString.Lazy.Char8}
+which simply assumes that each 8 bits is one character. As explained
+in \pref{chap:XYZ}, however, I think this is one of those things that
+is usually a no-no but is completely justified in this context.
+
+Let's start by just replacing some of our string manipulation with
+corresponding \h{ByteString} versions:
+
+\begin{minted}{haskell}
+import Control.Arrow
+import Data.ByteString.Lazy.Char8 qualified as C
+import Data.List.Split
+
+main = C.interact $
+  C.lines >>> drop 1 >>> chunksOf 4 >>>
+  map (drop 2 >>> map (C.words >>> map (C.unpack >>> read)) >>> solve) >>>
+  C.unlines
+
+solve :: [[Int]] -> C.ByteString
+solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
+  LT -> C.pack "MechaGodzilla"
+  _  -> C.pack "Godzilla"
+\end{minted}
+%$
+
+This already helps a lot: this version is actually accepted, taking
+0.66 seconds.
+
+But we can do even better: it turns out that \h{read} also has a lot of
+overhead, and if we are specifically reading \h{Int} values we can do
+something much better.  The \h{ByteString} module comes with a function
+\begin{minted}{haskell}
+readInt :: C.ByteString -> Maybe (Int, C.ByteString)
+\end{minted}
+Since, in this context, we know we will always get an integer with
+nothing left over, we can replace \h{C.unpack >>> read} with \h{C.readInt
+>>> fromJust >>> fst}.  While we're at it, we can also enable the
+\h{OverloadedStrings} language extension so that we don't have to wrap
+string literals in \h{C.pack}:
+
+\begin{minted}{haskell}
+{-# LANGUAGE OverloadedStrings #-}
+
+import Control.Arrow
+import Data.ByteString.Lazy.Char8 qualified as C
+import Data.List.Split
+import Data.Maybe (fromJust)
+
+main = C.interact $
+  C.lines >>> drop 1 >>> chunksOf 4 >>>
+  map (drop 2 >>> map (C.words >>> map readInt) >>> solve) >>>
+  C.unlines
+
+ where
+  readInt = C.readInt >>> fromJust >>> fst
+
+solve :: [[Int]] -> C.ByteString
+solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
+  LT -> "MechaGodzilla"
+  _  -> "Godzilla"
+\end{minted}
+Now we're talking---this version completes in a blazing 0.04 seconds!
+
+% We can take these principles and use them to make a variant of the
+% `Scanner` module from last time which uses (lazy, ASCII) `ByteString`
+% instead of `String`, including the use of the `readInt` functions to
+% read `Int` values quickly.  You can [find it here](https://github.com/byorgey/comprog-hs/blob/master/ScannerBS.hs).
 
 \chapter{Monoids}
 \label{chap:monoids}
