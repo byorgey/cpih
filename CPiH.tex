@@ -155,7 +155,7 @@ another---and we might immediately think to start using functions like
 there is a much more fruitful functional perspective: we are simply
 being asked to implement a particular (partial) function of type
 \h{String -> String}.\footnote{If you are worried about the use of
-  \h{String}, fear not: in Chapter XXX, once we develop a simple parsing
+  \h{String}, fear not: in \pref{chap:parsing}, once we develop a simple parsing
   framework, we will switch to \h{ByteString} for efficiency.}  The fact
 that the function's input and output should be hooked up to the
 program's standard input and output is just an implementation detail.
@@ -232,8 +232,8 @@ these lines. There are a few things to point out.
   When solving programming problems, I like to be able to type
   function pipelines from left to right as I think about data flowing
   through the pipeline from beginning to end.  This is of course a
-  personal preference, and one could also write%
-  \h{format . solve . parse} instead of%
+  personal preference, and one could also write %
+  \h{format . solve . parse} instead of %
   \h{parse >>> solve >>> format}.
 \item If the machine on which our solution will run has a 64-bit
   architecture (this is always true for Open Kattis, but not
@@ -337,36 +337,49 @@ number at the beginning saying how many), we can ignore all the
 counts: just split into lines, drop the first line, and then split
 each line into words, dropping the first.  Besides the lines being
 delimited by EOF overall, each individual line is delimited by the end
-of line character, so we don't need XXX.  It doesn't work when we
-really have no way to tell when a certain section ends other than
-using the number at the beginning. For example, XXX multiple sections
-with variable numbers of lines.  We'll get to that in chapter XXX.
+of line character, so we don't need any of the counts to tell us how
+far to read.
+
+However, this doesn't work when we really have no intrinsic way to
+tell when a certain section ends and another starts.  For example,
+some problems consist of a number of test cases, where each test case
+input consists of a variable numbers of lines. In that case we would
+need to use provided information about the length of each test case.
+We will discuss such parsing in \pref{chap:parsing}.
 
 \section{Using partial functions}
 \label{sec:partial}
 
 You might wonder about using a list as the output of \h{parse} and the
 input of \h{solve}.  Shouldn't we use something like \h{(Int,Int)}, since
-we know we will be given exactly two integers? XXX paste in blog post
+we know we will be given exactly two integers? \todo{paste in blog post
 about this.  Note you can skip if you're not interested in the
-philosophy
+philosophy.}
 
-  The fact is that I almost never use actual Haskell tuples in my
-  solutions, because they are too awkward and
-  inconvenient. Representing homogeneous tuples as Haskell lists of a
-  certain known length allows us to read and process ``tuples'' using
-  standard functions like \h{words} and \h{map}, to combine them using
-  \h{zipWith}, and so on.  And since we get to assume that the input
-  always precisely follows the specification---which will never
-  change---this is one of the few situations where, in my opinion, we
-  are fully justified in writing partial functions like this if it
-  makes the code easier to write.  So I often represent homogeneous
-  tuples as lists and just pattern match on lists of the appropriate
-  (known) length.  (If I need heterogeneous tuples, on the other hand,
-  I create an appropriate \h{data} type.)
+The fact is that I almost never use actual Haskell tuples in my
+solutions, because they are too awkward and inconvenient. Representing
+homogeneous tuples as Haskell lists of a certain known length allows
+us to read and process ``tuples'' using standard functions like
+\h{words} and \h{map}, to combine them using \h{zipWith}, and so on.
+And since we get to assume that the input always precisely follows the
+specification---which will never change---this is one of the few
+situations where, in my opinion, we are fully justified in writing
+partial functions like this if it makes the code easier to write.  So
+I often represent homogeneous tuples as lists and just pattern match
+on lists of the appropriate (known) length.  (If I need heterogeneous
+tuples, on the other hand, I create an appropriate \h{data} type.)
 
 \section{Explicit recursion}
 \label{sec:explicit-recursion}
+
+Some styles of Haskell programming eschew explicit recursion in favor
+of folds and other recursion schemes.  And certainly, one should use
+simple higher-order functions like \h{map}, \h{filter}, and so on when
+appropriate.  However, it's often not worth trying to come up with
+some clever fold when a simple recursive function will be faster to
+write and easier to debug.
+
+\todo{Example}
 
 \section{Practice problems}
 \label{sec:gs-practice}
