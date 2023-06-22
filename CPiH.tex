@@ -206,21 +206,7 @@ these lines. There are a few things to point out.
 
 \begin{figure}
   \centering
-\begin{minted}{haskell}
-  import Control.Arrow ((>>>))
-
-  main = interact $ parse >>> map solve >>> format
-
-  parse :: String -> [[Integer]]
-  parse = _
-
-  solve :: [Integer] -> Integer
-  solve = _
-
-  format :: [Integer] -> String
-  format = _
-\end{minted}
-% $
+  \inputminted{haskell}{code/intro/Skeleton.hs}
   \caption{A skeleton solution for A Different Problem}
   \label{fig:skeleton-different}
 \end{figure}
@@ -299,10 +285,7 @@ numbers.  This is easily parsed using a combination of \h{lines},
 
 \begin{figure}
   \centering
-\begin{minted}{haskell}
-  parse :: String -> [[Integer]]
-  parse = lines >>> map (words >>> map read)
-\end{minted}
+  \inputminted[firstline=5, lastline=6]{haskell}{code/intro/Different.hs}
   \caption{\h{parse} function for A Different Problem}
   \label{fig:parse-different}
 \end{figure}
@@ -346,6 +329,8 @@ some problems consist of a number of test cases, where each test case
 input consists of a variable numbers of lines. In that case we would
 need to use provided information about the length of each test case.
 We will discuss such parsing in \pref{chap:parsing}.
+
+\todo{include full solution for A Different Problem?}
 
 \section{Using partial functions}
 \label{sec:partial}
@@ -429,22 +414,13 @@ A standard imperative approach to this problem would be to loop over
 the list of words, updating an accumulator variable every time we see
 a string that does not contain the letter e.  An inexperienced
 Haskeller might produce something similar:
-\begin{minted}{haskell}
-lengthWithoutE :: [String] -> Int
-lengthWithoutE [] = 0
-lengthWithoutE (s:ss)
-  | 'e' `elem` s = lengthWithoutE ss
-  | otherwise = length s + lengthWithoutE ss
-\end{minted}
+\inputminted{haskell}{code/wholemeal/LengthWithoutE.hs}
 This code works, but there is a better way.  Instead of thinking in
 terms of processing the list one item at a time, an experienced
 Haskeller will think in terms of incrementally transforming the input
 into the desired output: first, filter out the strings we don't want;
 next, turn each string into its length; and finally sum the lengths.
-\begin{minted}{haskell}
-lengthWithoutE' :: [String] -> Int
-lengthWithoutE' = filter ('e' `notElem`) >>> map length >>> sum
-\end{minted}
+\inputminted{haskell}{code/wholemeal/LengthWithoutEWholemeal.hs}
 This is better in almost every way: it is shorter, easier to read and
 understand, easier to refactor, harder to get wrong, and easier to
 prove correct.
@@ -493,6 +469,9 @@ big difference.  What you definitely don't want to do is use many
 small lists as data structures.  That is, for example, having two
 lists with $10^5$ elements each is probably fine; having $10^5$ lists
 with two elements each is probably going to be too slow.
+
+\todo{pick two or three representative sample problems and discuss
+  their solutions?  One using scanl?}
 
 \kattis{foo, bar}
 
@@ -546,26 +525,7 @@ to a list and picking the first element (\emph{i.e.}  \h{listToMaybe
 
 \begin{figure}
   \centering
-\begin{minted}{haskell}
-import           Control.Arrow ((>>>))
-import qualified Data.Set      as S
-
-main :: IO ()
-main = interact $ words >>> parse >>> solve
-
-data Hotel = Hotel
-  { numRooms :: Int
-  , booked   :: [Int]
-  }
-
-parse :: [String] -> Hotel
-parse (r:_:rs) = Hotel (read r) (map read rs)
-
-solve :: Hotel -> String
-solve (Hotel r rs) =
-  maybe "too late" show . S.lookupMin
-  $ S.fromList [1..r] `S.difference` S.fromList rs
-\end{minted}
+  \inputminted{haskell}{code/wholemeal/BookingARoom.hs}
   \caption{Booking a Room solution}
   \label{fig:bookingaroom}
 \end{figure}
@@ -1001,10 +961,12 @@ solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
 \end{minted}
 Now we're talking---this version completes in a blazing 0.04 seconds!
 
-% We can take these principles and use them to make a variant of the
-% `Scanner` module from last time which uses (lazy, ASCII) `ByteString`
-% instead of `String`, including the use of the `readInt` functions to
-% read `Int` values quickly.  You can [find it here](https://github.com/byorgey/comprog-hs/blob/master/ScannerBS.hs).
+We can take these principles and use them to make a variant of the
+\h{Scanner} module from last time which uses (lazy, ASCII)
+\h{ByteString} instead of \h{String}, including the use of the
+\h{readInt} functions to read \h{Int} values quickly.  You can [find
+it
+here](https://github.com/byorgey/comprog-hs/blob/master/ScannerBS.hs).
 
 \chapter{Monoids}
 \label{chap:monoids}
