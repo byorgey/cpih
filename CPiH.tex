@@ -699,28 +699,25 @@ is automatically an instance of \h{Functor}, \h{Applicative}, and
 
 So let's develop a little \h{Scanner} DSL.  The most fundamental thing
 we can do is read the next token.
-
 \begin{minted}{haskell}
 str :: Scanner String
 str = get >>= \case { s:ss -> put ss >> return s }
 \end{minted}
-
 (This uses the \h{LambdaCase} extension\todo{reference}, though we
 could easily rewrite it without.)  \h{str} gets the current list of
 tokens, puts it back without the first token, and returns the first
-token.  Note that I purposely didn't include a case for the empty
-list.  You might think we want to include a case for the empty token
-list and have it return the empty string or something like that.  But
-since the input will always be properly formatted, if this scenario
-ever happens it means our program has a bug---for example, perhaps I
-misunderstood the description of the input format.  In this scenario we
-\emph{want} it to crash loudly, as soon as possible, rather than
-continuing on with some bogus data.
+token.  Note that there is no case for the empty list.  You might
+think we want to include a case for the empty token list and have it
+return the empty string or something like that.  But since the input
+will always be properly formatted, if \h{str} is ever called when
+there are no tokens left it means our program has a bug---for example,
+perhaps we misunderstood the description of the input format.  In this
+scenario we \emph{want} it to crash loudly, as soon as possible,
+rather than continuing on with some bogus data.
 
 We can now add some scanners for reading specific token types other
 than \h{String}, simply by mapping the \h{read} function over the output
 of \h{str}:
-
 \begin{minted}{haskell}
 int :: Scanner Int
 int = read <$> str
@@ -732,7 +729,6 @@ double :: Scanner Double
 double = read <$> str
 \end{minted}
 %$
-
 Again, these will crash if they see a token in an unexpected format,
 and that is a very deliberate choice.
 
@@ -749,8 +745,10 @@ the provided scanner $n$ times, returning a list of the results.
 It's also sometimes useful to have a way to repeat a \h{Scanner} some
 unknown number of times until encountering EOF (for example, the input
 for some problems doesn't specify the number of test cases up front
-the way that Popular Vote does).  This is similar to the \h{many}
-combinator from \h{Alternative}.
+the way that \inlinekattis{vote} does).  This is similar to the \h{many}
+combinator from \h{Alternative}, except that it only stops when the
+token stream runs out, not when the given \h{Scanner} fails (remember
+that we have no way to handle \h{Scanner} failure other than crashing).
 \begin{minted}{haskell}
 many :: Scanner a -> Scanner [a]
 many s = get >>= \case { [] -> return []; _ -> (:) <$> s <*> many s }
@@ -772,12 +770,14 @@ two, three, four :: Scanner a -> Scanner [a]
 [two, three, four] = map replicateM [2..4]
 \end{minted}
 
+\todo{Also mention times / \h{><} and pair}
+
 \todo{Show complete code listing? Or put it in Appendix?  In any case,
   link to complete code on GitHub.}
 
 \section{Examples}
 
-So what have we gained?  Writing the parser for Popular Vote is now
+So what have we gained?  Writing the parser for \kattisinline{vote} is now
 almost trivial:
 \begin{minted}{haskell}
 type Election = [Int]
@@ -808,8 +808,10 @@ respectively. $v$ is the angle between the height axis of the board to
 the $y$-axis in degrees, positive clockwise.
 \end{quote}
 
-Here's how I would set up the input, using \h{Scanner} and a custom data
-type to represent boards.
+Here's how I might set up the input, using \h{Scanner} and a custom
+data type to represent boards (in practice I would actually use a
+custom data type for 2D points/vectors defined in my geometry library
+rather than the type \h{V} defined below; see \pref{chap:geometry}).
 
 \begin{minted}{haskell}
 import Scanner
@@ -821,7 +823,7 @@ newtype A = A Double  -- angle (radians)
 fromDeg :: Double -> A
 fromDeg d = A (d * pi / 180)
 
-data Board = Board { boardLoc :: V, boardDims :: V, boardAngle :: A }
+data Board = Board { boardLoc :: !V, boardDims :: !V, boardAngle :: !A }
 
 board :: Scanner Board
 board = Board
@@ -905,68 +907,69 @@ is usually a no-no but is completely justified in this context.
 
 Let's start by just replacing some of our string manipulation with
 corresponding \h{ByteString} versions:
-
 \begin{minted}{haskell}
 import Control.Arrow
-import Data.ByteString.Lazy.Char8 qualified as C
+import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.List.Split
 
-main = C.interact $
-  C.lines >>> drop 1 >>> chunksOf 4 >>>
-  map (drop 2 >>> map (C.words >>> map (C.unpack >>> read)) >>> solve) >>>
-  C.unlines
+main = BS.interact $
+  BS.lines >>> drop 1 >>> chunksOf 4 >>>
+  map (
+    drop 2 >>>
+    map (BS.words >>> map (BS.unpack >>> read)) >>>
+    solve
+  ) >>>
+  BS.unlines
 
-solve :: [[Int]] -> C.ByteString
+solve :: [[Int]] -> BS.ByteString
 solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
-  LT -> C.pack "MechaGodzilla"
-  _  -> C.pack "Godzilla"
+  LT -> BS.pack "MechaGodzilla"
+  _  -> BS.pack "Godzilla"
 \end{minted}
 %$
-
 This already helps a lot: this version is actually accepted, taking
 0.66 seconds.
 
-But we can do even better: it turns out that \h{read} also has a lot of
-overhead, and if we are specifically reading \h{Int} values we can do
-something much better.  The \h{ByteString} module comes with a function
+But we can do even better: it turns out that \h{read} also has a lot
+of overhead, and if we are specifically reading \h{Int} values we can
+do it much faster.  The \h{ByteString} module comes with a function
 \begin{minted}{haskell}
-readInt :: C.ByteString -> Maybe (Int, C.ByteString)
+BS.readInt :: BS.ByteString -> Maybe (Int, BS.ByteString)
 \end{minted}
 Since, in this context, we know we will always get an integer with
-nothing left over, we can replace \h{C.unpack >>> read} with \h{C.readInt
+nothing left over, we can replace \h{BS.unpack >>> read} with \h{BS.readInt
 >>> fromJust >>> fst}.  While we're at it, we can also enable the
 \h{OverloadedStrings} language extension so that we don't have to wrap
-string literals in \h{C.pack}:
+string literals in \h{BS.pack}:
 
 \begin{minted}{haskell}
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Arrow
-import Data.ByteString.Lazy.Char8 qualified as C
+import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.List.Split
 import Data.Maybe (fromJust)
 
-main = C.interact $
-  C.lines >>> drop 1 >>> chunksOf 4 >>>
-  map (drop 2 >>> map (C.words >>> map readInt) >>> solve) >>>
-  C.unlines
+main = BS.interact $
+  BS.lines >>> drop 1 >>> chunksOf 4 >>>
+  map (drop 2 >>> map (BS.words >>> map readInt) >>> solve) >>>
+  BS.unlines
 
  where
-  readInt = C.readInt >>> fromJust >>> fst
+  readInt = BS.readInt >>> fromJust >>> fst
 
-solve :: [[Int]] -> C.ByteString
+solve :: [[Int]] -> BS.ByteString
 solve [gz, mgz] = case compare (maximum gz) (maximum mgz) of
-  LT -> "MechaGodzilla"
+  LT -> "MechaGodzilla"  -- automatically wrapped in BS.pack
   _  -> "Godzilla"
 \end{minted}
 Now we're talking---this version completes in a blazing 0.04 seconds!
 
 We can take these principles and use them to make a variant of the
-\h{Scanner} module from last time which uses (lazy, ASCII)
-\h{ByteString} instead of \h{String}, including the use of the
-\h{readInt} functions to read \h{Int} values quickly.  You can [find
-it
-here](https://github.com/byorgey/comprog-hs/blob/master/ScannerBS.hs).
+\h{Scanner} module which uses \h{ByteString} instead of
+\h{String}, including the use of the \h{readInt} functions to read
+\h{Int} values quickly.  You can find it
+at \url{https://github.com/byorgey/comprog-hs/blob/master/ScannerBS.hs}.
 
 \chapter{Monoids}
 \label{chap:monoids}
